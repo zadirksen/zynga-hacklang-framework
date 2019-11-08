@@ -307,6 +307,49 @@ class InventoryModelTest extends BaseInventoryTest {
     );
   }
 
+  public function testInventory_WhereOverrideNotSet_WhenReaderModelFlagSetToFalse(
+  ): void {
+    $model = new InventoryModel();
+
+    $where = new PgWhereClause($model);
+    $where->and('id', PgWhereOperand::EQUALS, 0);
+
+    $this->assertFalse(
+      $model->cache()->doesWriterOverrideKeyExist(ItemType::class, $where),
+    );
+
+    $result = $model->get(ItemType::class, $where);
+
+    $model->cache()->clearResultSetCache(ItemType::class, $where);
+
+    $model2 = new InventoryModel();
+    $model2->setAllowWriterOverride(false);
+    $this->assertFalse(
+      $model2->cache()->doesWriterOverrideKeyExist(ItemType::class, $where),
+    );
+  }
+
+  public function testInventory_WhereOverrideNotSet_ModelDoesNotSupportWriterOverride(
+  ): void {
+    $model = new InventoryModel();
+    $model->setAllowWriterOverride(false);
+    $where = new PgWhereClause($model);
+    $where->and('id', PgWhereOperand::EQUALS, 0);
+
+    $this->assertFalse(
+      $model->cache()->doesWriterOverrideKeyExist(ItemType::class, $where),
+    );
+
+    $result = $model->get(ItemType::class, $where);
+
+    $model->cache()->clearResultSetCache(ItemType::class, $where);
+
+    $model2 = new InventoryModel();
+    $this->assertFalse(
+      $model2->cache()->doesWriterOverrideKeyExist(ItemType::class, $where),
+    );
+  }
+
   private function doesQueryReturnExpectedValues(
     Vector<Map<string, mixed>> $expectedResultToInclude,
     ?PgWhereClauseInterface $where = null,
